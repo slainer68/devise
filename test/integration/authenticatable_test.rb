@@ -327,6 +327,20 @@ class AuthenticationSessionTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_user_session_path
   end
 
+  test 'refreshes _csrf_token' do
+    ApplicationController.allow_forgery_protection = true
+
+    begin
+      get new_user_session_path
+      token = request.session[:_csrf_token]
+
+      sign_in_as_user
+      assert_not_equal request.session[:_csrf_token], token
+    ensure
+      ApplicationController.allow_forgery_protection = false
+    end
+  end
+
   test 'allows session to be set for a given scope' do
     sign_in_as_user
     get '/users'
@@ -419,7 +433,7 @@ end
 
 class AuthenticationOthersTest < ActionDispatch::IntegrationTest
   test 'handles unverified requests gets rid of caches' do
-    swap UsersController, :allow_forgery_protection => true do
+    swap ApplicationController, :allow_forgery_protection => true do
       post exhibit_user_url(1)
       assert_not warden.authenticated?(:user)
 

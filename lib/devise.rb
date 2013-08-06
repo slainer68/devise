@@ -14,6 +14,7 @@ module Devise
   autoload :ParameterSanitizer, 'devise/parameter_sanitizer'
   autoload :TestHelpers,        'devise/test_helpers'
   autoload :TimeInflector,      'devise/time_inflector'
+  autoload :TokenGenerator,     'devise/token_generator'
 
   module Controllers
     autoload :Helpers, 'devise/controllers/helpers'
@@ -44,6 +45,15 @@ module Devise
 
   # True values used to check params
   TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE']
+
+  # Secret key used by the key generator
+  mattr_accessor :secret_key
+  @@secret_key = nil
+
+  # Allow insecure token lookup. Must be used
+  # temporarily just for migration.
+  mattr_accessor :allow_insecure_token_lookup
+  @@allow_insecure_tokens_lookup = false
 
   # Custom domain or key for cookies. Not set by default
   mattr_accessor :rememberable_options
@@ -223,17 +233,9 @@ module Devise
   mattr_accessor :omniauth_path_prefix
   @@omniauth_path_prefix = nil
 
-  def self.encryptor=(value)
-    warn "\n[DEVISE] To select a encryption which isn't bcrypt, you should use devise-encryptable gem.\n"
-  end
-
-  def self.use_salt_as_remember_token=(value)
-    warn "\n[DEVISE] Devise.use_salt_as_remember_token is deprecated and has no effect. Please remove it.\n"
-  end
-
-  def self.apply_schema=(value)
-    warn "\n[DEVISE] Devise.apply_schema is deprecated and has no effect. Please remove it.\n"
-  end
+  # Set if we should clean up the CSRF Token on authentication
+  mattr_accessor :clean_up_csrf_token_on_authentication
+  @@clean_up_csrf_token_on_authentication = true
 
   # PRIVATE CONFIGURATION
 
@@ -258,6 +260,10 @@ module Devise
   # When true, enter in paranoid mode to avoid user enumeration.
   mattr_accessor :paranoid
   @@paranoid = false
+
+  # Stores the token generator
+  mattr_accessor :token_generator
+  @@token_generator = nil
 
   # Default way to setup Devise. Run rails generate devise_install to create
   # a fresh initializer with all configuration values.
